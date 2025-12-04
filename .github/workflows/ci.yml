@@ -1,0 +1,60 @@
+name: CI Pipeline - C Sum App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test-package-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout source
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      # 2️⃣ Prepare build folder
+      - name: Prepare build folder
+        run: mkdir -p build
+
+      # 3️⃣ Build main application
+      - name: Build application
+        run: |
+          gcc main.c -o build/app
+          ls -l build
+
+      # 4️⃣ Run unit tests
+      - name: Build and run tests
+        run: |
+          gcc main.c test.c -o build/test_app
+          ./build/test_app
+          ls -l build
+
+      # 5️⃣ Create artifact
+      - name: Create build artifact
+        run: zip -r build.zip build
+
+      # 6️⃣ Upload artifact
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: c-build
+          path: build.zip
+
+      # 7️⃣ Download artifact simulation
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: c-build
+          path: ./downloaded
+
+      # 8️⃣ Simulated deploy using secret
+      - name: Simulated deploy
+        env:
+          ARKA_SECRET: ${{ secrets.ARKA_SECRET }}
+        run: |
+          echo "Downloaded files:"
+          ls -la ./downloaded
+          echo "Deployment simulated successfully!"
